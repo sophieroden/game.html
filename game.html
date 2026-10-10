@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MEMO MATRIX - Mobile Memory Challenge</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #030308;
+            color: #ffffff;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #game-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 480px;
+            height: 100%;
+            max-height: 920px;
+            background: radial-gradient(circle at center, #100b2b 0%, #030308 100%);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0, 243, 255, 0.15);
+        }
+
+        #hud {
+            width: 100%;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(0, 243, 255, 0.2);
+            z-index: 5;
+        }
+
+        .hud-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .hud-label {
+            font-size: 0.68rem;
+            color: #8b8fa3;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .hud-value {
+            font-size: 1.3rem;
+            color: #00f3ff;
+            font-weight: 800;
+            font-family: monospace;
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+        }
+
+        .hud-value-pink {
+            color: #ff007f;
+            text-shadow: 0 0 10px rgba(255, 0, 127, 0.5);
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(3, 3, 8, 0.92);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 10;
+            padding: 24px;
+            text-align: center;
+            transition: opacity 0.3s ease;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 900;
+            letter-spacing: 3px;
+            background: linear-gradient(135deg, #00f3ff, #ff007f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+            text-shadow: 0 0 30px rgba(0, 243, 255, 0.3);
+        }
+
+        .subtitle {
+            font-size: 0.85rem;
+            color: #8b8fa3;
+            margin-bottom: 32px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .input-group {
+            width: 100%;
+            max-width: 280px;
+            margin-bottom: 24px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 16px 20px;
+            font-size: 1.1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 243, 255, 0.3);
+            border-radius: 14px;
+            color: #ffffff;
+            outline: none;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-weight: 700;
+        }
+
+        input[type="text"]:focus {
+            border-color: #00f3ff;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #00f3ff 0%, #0066ff 100%);
+            color: #030308;
+            border: none;
+            padding: 18px 54px;
+            font-size: 1.25rem;
+            font-weight: 900;
+            border-radius: 14px;
+            cursor: pointer;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            box-shadow: 0 0 25px rgba(0, 243, 255, 0.4);
+            transition: transform 0.15s ease, box-shadow 0.2s ease;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-restart {
+            background: linear-gradient(135deg, #ff007f 0%, #7f00ff 100%);
+            box-shadow: 0 0 25px rgba(255, 0, 127, 0.4);
+            color: #ffffff;
+        }
+
+        .stats-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            width: 100%;
+            max-width: 290px;
+            margin-bottom: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.95rem;
+        }
+
+        .stat-row span:first-child {
+            color: #8b8fa3;
+            font-weight: 600;
+        }
+
+        .stat-row span:last-child {
+            font-family: monospace;
+            font-weight: 800;
+            font-size: 1.15rem;
+            color: #00f3ff;
+        }
+
+        #main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            position: relative;
+        }
+
+        #timer-bar-container {
+            width: 100%;
+            max-width: 360px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        #timer-bar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #00f3ff, #ff007f);
+            transition: width 0.1s linear;
+        }
+
+        #grid-container {
+            display: grid;
+            gap: 10px;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            perspective: 1000px;
+        }
+
+        .card {
+            aspect-ratio: 1;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            border-radius: 12px;
+        }
+
+        .card.flipped, .card.matched {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border: 2px solid rgba(0, 243, 255, 0.3);
+            color: #00f3ff;
+            font-weight: 800;
+            font-size: 1.2rem;
+        }
+
+        .card-front::after {
+            content: '❖';
+            font-size: 1.4rem;
+            color: rgba(0, 243, 255, 0.4);
+        }
+
+        .card.focused .card-front {
+            border-color: #ffaa00;
+            box-shadow: 0 0 15px rgba(255, 170, 0, 0.6);
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #18153b 0%, #0a081a 100%);
+            border: 2px solid #00f3ff;
+            transform: rotateY(180deg);
+        }
+
+        .card.matched .card-back {
+            border-color: #ff007f;
+            box-shadow: 0 0 20px rgba(255, 0, 127, 0.5);
+            animation: pulse-match 0.5s ease;
+        }
+
+        @keyframes pulse-match {
+            0% { transform: rotateY(180deg) scale(1); }
+            50% { transform: rotateY(180deg) scale(1.08); }
+            100% { transform: rotateY(180deg) scale(1); }
+        }
+
+        /* SVG Icon styling inside cards */
+        .card-icon {
+            width: 55%;
+            height: 55%;
+            fill: none;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 0 8px currentColor);
+        }
+
+        /* Canvas overlay for particle effects */
+        #particle-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 20;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-wrapper">
+        <!-- HUD Header -->
+        <div id="hud" class="hidden">
+            <div class="hud-box">
+                <span class="hud-label" id="hud-name">PILOT</span>
+                <span class="hud-value" id="hud-score">0</span>
+            </div>
+            <div class="hud-box" style="align-items: center;">
+                <span class="hud-label">TIME</span>
+                <span class="hud-value hud-value-pink" id="hud-timer">--</span>
+            </div>
+            <div class="hud-box" style="align-items: flex-end;">
+                <span class="hud-label">STAGE</span>
+                <span class="hud-value" id="hud-stage">1</span>
+            </div>
+        </div>
+
+        <!-- Main Gameplay Canvas / Grid Container -->
+        <div id="main-content">
+            <div id="timer-bar-container" class="hidden">
+                <div id="timer-bar"></div>
+            </div>
+            <div id="grid-container"></div>
+            <canvas id="particle-canvas"></canvas>
+        </div>
+
+        <!-- Title Screen -->
+        <div id="title-screen" class="screen">
+            <h1>MEMO MATRIX</h1>
+            <div class="subtitle">Neural Pattern Synchronizer</div>
+            <div class="input-group">
+                <input type="text" id="player-name" placeholder="ENTER YOUR NAME" maxlength="12" autocomplete="off" spellcheck="false">
+            </div>
+            <button class="btn" id="play-btn">START</button>
+        </div>
+
+        <!-- Game Over / Level Clear Overlay Screen -->
+        <div id="result-screen" class="screen hidden">
+            <h1 id="result-title">SYSTEM OVERLOAD</h1>
+            <div class="subtitle" id="result-subtitle">Neural synchronization failed</div>
+
+            <div class="stats-card">
+                <div class="stat-row">
+                    <span>FINAL SCORE</span>
+                    <span id="stat-score">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>STAGES CLEARED</span>
+                    <span id="stat-stage">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>ACCURACY</span>
+                    <span id="stat-accuracy">100%</span>
+                </div>
+                <div class="stat-row">
+                    <span>BEST SCORE</span>
+                    <span id="stat-best">0</span>
+                </div>
+            </div>
+
+            <button class="btn btn-restart" id="restart-btn">PLAY AGAIN</button>
+        </div>
+    </div>
+
+    <script>
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playFlip() {
+                if (!this.ctx) return;
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(600, this.ctx.currentTime + 0.08);
+                    gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.08);
+                } catch(e) {}
+            }
+
+            playMatch() {
+                if (!this.ctx) return;
+                try {
+                    const now = this.ctx.currentTime;
+                    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                    notes.forEach((freq, idx) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.05);
+                        gain.gain.setValueAtTime(0.15, now + idx * 0.05);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.3);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now + idx * 0.05);
+                        osc.stop(now + idx * 0.05 + 0.3);
+                    });
+                } catch(e) {}
+            }
+
+            playMismatch() {
+                if (!this.ctx) return;
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(160, this.ctx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(90, this.ctx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.2);
+                } catch(e) {}
+            }
+
+            playLevelUp() {
+                if (!this.ctx) return;
+                try {
+                    const now = this.ctx.currentTime;
+                    const arpeggio = [440, 554.37, 659.25, 880, 1108.73];
+                    arpeggio.forEach((freq, i) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.06);
+                        gain.gain.setValueAtTime(0.15, now + i * 0.06);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.25);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now + i * 0.06);
+                        osc.stop(now + i * 0.06 + 0.25);
+                    });
+                } catch(e) {}
+            }
+
+            playGameOver() {
+                if (!this.ctx) return;
+                try {
+                    const now = this.ctx.currentTime;
+                    const freqs = [300, 260, 220, 150];
+                    freqs.forEach((f, i) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(f, now + i * 0.12);
+                        gain.gain.setValueAtTime(0.18, now + i * 0.12);
+                        gain.gain.linearRampToValueAtTime(0.01, now + i * 0.12 + 0.2);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now + i * 0.12);
+                        osc.stop(now + i * 0.12 + 0.2);
+                    });
+                } catch(e) {}
+            }
+        }
+
+        const sounds = new SoundEngine();
+
+        const SVG_ICONS = [
+            // Atom / Molecule
+            `<svg class="card-icon" style="stroke:#00f3ff" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><ellipse cx="12" cy="12" rx="9" ry="4"/><ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(120 12 12)"/></svg>`,
+            // Lightning Bolt
+            `<svg class="card-icon" style="stroke:#ff007f" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+            // Cyber Diamond
+            `<svg class="card-icon" style="stroke:#ffaa00" viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M11 3v18"/><path d="M2 9h20"/></svg>`,
+            // Cyber Shield
+            `<svg class="card-icon" style="stroke:#00ff66" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="11" r="3"/></svg>`,
+            // Star Prism
+            `<svg class="card-icon" style="stroke:#cc00ff" viewBox="0 0 24 24"><polygon points="12 2 15 8.5 22 9 17 14 18.5 21 12 17.5 5.5 21 7 14 2 9 9 8.5 12 2"/></svg>`,
+            // Target Node
+            `<svg class="card-icon" style="stroke:#ffff00" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/><line x1="12" y1="1" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="1" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="23" y2="12"/></svg>`,
+            // Flame Energy
+            `<svg class="card-icon" style="stroke:#ff3300" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 17c1.38 0 2.5-1.1 2.5-2.5 0-.64-.24-1.22-.64-1.6L12 12l-.86 0.9A2.47 2.47 0 0 0 8.5 14.5z"/><path d="M12 2c1.8 3.6 6 6.5 6 11.5a6 6 0 0 1-12 0c0-3 2.5-6.5 6-11.5z"/></svg>`,
+            // Radio Wave / Transmitter
+            `<svg class="card-icon" style="stroke:#00ffff" viewBox="0 0 24 24"><path d="M4.9 19.1C3.1 17.3 2 14.8 2 12s1.1-5.3 2.9-7.1"/><path d="M7.8 16.2c-1.1-1.1-1.8-2.6-1.8-4.2s.7-3.1 1.8-4.2"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c1.1 1.1 1.8 2.6 1.8 4.2s-.7 3.1-1.8 4.2"/><path d="M19.1 4.9C20.9 6.7 22 9.2 22 12s-1.1 5.3-2.9 7.1"/></svg>`,
+            // Infinity Matrix
+            `<svg class="card-icon" style="stroke:#ff00cc" viewBox="0 0 24 24"><path d="M12 12c-2-2.5-4-4-6.5-4A4.5 4.5 0 0 0 1 12.5 4.5 4.5 0 0 0 5.5 17c2.5 0 4.5-1.5 6.5-4zm0 0c2 2.5 4 4 6.5 4a4.5 4.5 0 0 0 4.5-4.5A4.5 4.5 0 0 0 18.5 7c-2.5 0-4.5 1.5-6.5 4z"/></svg>`,
+            // Hexagon Chip
+            `<svg class="card-icon" style="stroke:#00ffbb" viewBox="0 0 24 24"><path d="M12 2l9 4.9v9.8L12 22l-9-4.9V6.9L12 2z"/><circle cx="12" cy="12" r="3"/></svg>`
+        ];
+
+        let playerName = 'PILOT';
+        let stage = 1;
+        let score = 0;
+        let highScore = parseInt(localStorage.getItem('memo_matrix_highscore') || '0', 10);
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let totalPairs = 0;
+        let isProcessing = false;
+        let timerInterval = null;
+        let timeLeft = 0;
+        let maxTime = 0;
+        let totalFlips = 0;
+        let focusedCardIndex = 0;
+
+        // DOM Element references
+        const titleScreen = document.getElementById('title-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const hud = document.getElementById('hud');
+        const playBtn = document.getElementById('play-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const playerNameInput = document.getElementById('player-name');
+        const gridContainer = document.getElementById('grid-container');
+        const timerBarContainer = document.getElementById('timer-bar-container');
+        const timerBar = document.getElementById('timer-bar');
+
+        const hudName = document.getElementById('hud-name');
+        const hudScore = document.getElementById('hud-score');
+        const hudTimer = document.getElementById('hud-timer');
+        const hudStage = document.getElementById('hud-stage');
+
+        const resultTitle = document.getElementById('result-title');
+        const resultSubtitle = document.getElementById('result-subtitle');
+        const statScore = document.getElementById('stat-score');
+        const statStage = document.getElementById('stat-stage');
+        const statAccuracy = document.getElementById('stat-accuracy');
+        const statBest = document.getElementById('stat-best');
+
+        const particleCanvas = document.getElementById('particle-canvas');
+        const pCtx = particleCanvas.getContext('2d');
+        let particles = [];
+
+        function resizeParticleCanvas() {
+            particleCanvas.width = particleCanvas.clientWidth;
+            particleCanvas.height = particleCanvas.clientHeight;
+        }
+        window.addEventListener('resize', resizeParticleCanvas);
+        resizeParticleCanvas();
+
+        function spawnParticles(x, y, color, count = 20) {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 5 + 2;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    radius: Math.random() * 3 + 2,
+                    color: color || '#00f3ff',
+                    life: 1.0,
+                    decay: Math.random() * 0.03 + 0.02
+                });
+            }
+        }
+
+        function updateAndRenderParticles() {
+            pCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= p.decay;
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+                pCtx.save();
+                pCtx.globalAlpha = p.life;
+                pCtx.shadowColor = p.color;
+                pCtx.shadowBlur = 10;
+                pCtx.fillStyle = p.color;
+                pCtx.beginPath();
+                pCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                pCtx.fill();
+                pCtx.restore();
+            }
+            requestAnimationFrame(updateAndRenderParticles);
+        }
+        requestAnimationFrame(updateAndRenderParticles);
+
+        function getStageConfig(stageNum) {
+            // Stage progression configuration
+            if (stageNum === 1) return { rows: 2, cols: 2, time: 20 }; // 2 pairs
+            if (stageNum === 2) return { rows: 2, cols: 3, time: 25 }; // 3 pairs
+            if (stageNum === 3) return { rows: 3, cols: 4, time: 35 }; // 6 pairs
+            if (stageNum === 4) return { rows: 4, cols: 4, time: 45 }; // 8 pairs
+            if (stageNum === 5) return { rows: 4, cols: 5, time: 55 }; // 10 pairs
+            // Stage 6+: 4x5 with tighter time limits
+            const extra = stageNum - 5;
+            return { rows: 4, cols: 5, time: Math.max(20, 50 - extra * 4) };
+        }
+
+        playBtn.addEventListener('click', () => {
+            sounds.init();
+            const entered = playerNameInput.value.trim();
+            playerName = entered ? entered.toUpperCase() : 'PILOT';
+            hudName.textContent = playerName;
+
+            titleScreen.classList.add('hidden');
+            hud.classList.remove('hidden');
+            timerBarContainer.classList.remove('hidden');
+
+            score = 0;
+            stage = 1;
+            startStage();
+        });
+
+        restartBtn.addEventListener('click', () => {
+            sounds.init();
+            resultScreen.classList.add('hidden');
+            hud.classList.remove('hidden');
+            timerBarContainer.classList.remove('hidden');
+
+            score = 0;
+            stage = 1;
+            startStage();
+        });
+
+        function startStage() {
+            flippedCards = [];
+            matchedPairs = 0;
+            isProcessing = false;
+            totalFlips = 0;
+
+            const config = getStageConfig(stage);
+            totalPairs = (config.rows * config.cols) / 2;
+
+            hudScore.textContent = score;
+            hudStage.textContent = stage;
+
+            // Configure Grid CSS
+            gridContainer.style.gridTemplateColumns = `repeat(${config.cols}, 1fr)`;
+            gridContainer.innerHTML = '';
+
+            // Select SVG icons and duplicate to create pairs
+            const selectedIcons = SVG_ICONS.slice(0);
+            selectedIcons.sort(() => Math.random() - 0.5);
+            const stageIcons = selectedIcons.slice(0, totalPairs);
+            const deck = [...stageIcons, ...stageIcons];
+            deck.sort(() => Math.random() - 0.5);
+
+            // Create Card Elements
+            deck.forEach((iconSvg, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.index = index;
+                card.dataset.icon = iconSvg;
+
+                card.innerHTML = `
+                    <div class="card-face card-front"></div>
+                    <div class="card-face card-back">${iconSvg}</div>
+                `;
+
+                card.addEventListener('click', () => handleCardClick(card));
+                gridContainer.appendChild(card);
+            });
+
+            focusedCardIndex = 0;
+            updateKeyboardFocus();
+
+            // Setup Stage Timer
+            maxTime = config.time;
+            timeLeft = maxTime;
+            updateTimerDisplay();
+
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft -= 0.1;
+                if (timeLeft <= 0) {
+                    timeLeft = 0;
+                    clearInterval(timerInterval);
+                    updateTimerDisplay();
+                    gameOver(false);
+                } else {
+                    updateTimerDisplay();
+                }
+            }, 100);
+        }
+
+        function updateTimerDisplay() {
+            hudTimer.textContent = Math.ceil(timeLeft) + 's';
+            const pct = Math.max(0, (timeLeft / maxTime) * 100);
+            timerBar.style.width = pct + '%';
+
+            if (pct < 25) {
+                timerBar.style.background = '#ff007f';
+            } else if (pct < 50) {
+                timerBar.style.background = '#ffaa00';
+            } else {
+                timerBar.style.background = 'linear-gradient(90deg, #00f3ff, #ff007f)';
+            }
+        }
+
+        function handleCardClick(card) {
+            if (isProcessing) return;
+            if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+
+            sounds.playFlip();
+            card.classList.add('flipped');
+            flippedCards.push(card);
+            totalFlips++;
+
+            if (flippedCards.length === 2) {
+                isProcessing = true;
+                const [card1, card2] = flippedCards;
+
+                if (card1.dataset.icon === card2.dataset.icon) {
+                    // Match found!
+                    setTimeout(() => {
+                        sounds.playMatch();
+                        card1.classList.add('matched');
+                        card2.classList.add('matched');
+
+                        // Trigger visual particle explosion on cards
+                        const rect1 = card1.getBoundingClientRect();
+                        const containerRect = gridContainer.getBoundingClientRect();
+                        spawnParticles(
+                            rect1.left - containerRect.left + rect1.width / 2,
+                            rect1.top - containerRect.top + rect1.height / 2,
+                            '#00f3ff', 15
+                        );
+
+                        matchedPairs++;
+                        score += 100 + Math.floor(timeLeft * 5);
+                        hudScore.textContent = score;
+
+                        flippedCards = [];
+                        isProcessing = false;
+
+                        // Check Stage Clear
+                        if (matchedPairs === totalPairs) {
+                            clearInterval(timerInterval);
+                            sounds.playLevelUp();
+                            setTimeout(() => {
+                                stage++;
+                                startStage();
+                            }, 800);
+                        }
+                    }, 350);
+                } else {
+                    // Mismatch
+                    setTimeout(() => {
+                        sounds.playMismatch();
+                        card1.classList.remove('flipped');
+                        card2.classList.remove('flipped');
+                        flippedCards = [];
+                        isProcessing = false;
+                    }, 800);
+                }
+            }
+        }
+
+        function updateKeyboardFocus() {
+            const cards = gridContainer.querySelectorAll('.card');
+            cards.forEach((c, idx) => {
+                if (idx === focusedCardIndex) c.classList.add('focused');
+                else c.classList.remove('focused');
+            });
+        }
+
+        window.addEventListener('keydown', (e) => {
+            const cards = gridContainer.querySelectorAll('.card');
+            if (cards.length === 0) return;
+
+            const config = getStageConfig(stage);
+            if (e.key === 'ArrowRight') {
+                focusedCardIndex = (focusedCardIndex + 1) % cards.length;
+                updateKeyboardFocus();
+            } else if (e.key === 'ArrowLeft') {
+                focusedCardIndex = (focusedCardIndex - 1 + cards.length) % cards.length;
+                updateKeyboardFocus();
+            } else if (e.key === 'ArrowDown') {
+                if (focusedCardIndex + config.cols < cards.length) {
+                    focusedCardIndex += config.cols;
+                    updateKeyboardFocus();
+                }
+            } else if (e.key === 'ArrowUp') {
+                if (focusedCardIndex - config.cols >= 0) {
+                    focusedCardIndex -= config.cols;
+                    updateKeyboardFocus();
+                }
+            } else if (e.key === 'Enter' || e.key === ' ') {
+                if (cards[focusedCardIndex]) {
+                    handleCardClick(cards[focusedCardIndex]);
+                }
+            }
+        });
+
+        function gameOver(victory) {
+            sounds.playGameOver();
+            hud.classList.add('hidden');
+            timerBarContainer.classList.add('hidden');
+
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('memo_matrix_highscore', highScore.toString());
+            }
+
+            resultTitle.textContent = 'SYSTEM OVERLOAD';
+            resultSubtitle.textContent = `Time expired on stage ${stage}`;
+
+            statScore.textContent = score;
+            statStage.textContent = stage - 1;
+            
+            // Calculate accuracy percentage
+            const minPossibleFlips = totalPairs * 2;
+            const accuracy = totalFlips > 0 ? Math.min(100, Math.round((minPossibleFlips / Math.max(minPossibleFlips, totalFlips)) * 100)) : 100;
+            statAccuracy.textContent = `${accuracy}%`;
+            statBest.textContent = highScore;
+
+            resultScreen.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
